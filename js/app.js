@@ -59,9 +59,17 @@ function renderAxes(newXScale, xAxis) {
   return xAxis;
 }
 
+var toolTips = d3.tip()
+  .attr("class", "tooltip")
+  .offset([80, -60])
+  .html(function(d) {
+    return (`${d.state}<br> ${d[chosenXAxis]}`);
+});
+
+
 // function used for updating circles group with a transition to
 // new circles
-function renderCircles(circlesGroup, newXScale, chosenXaxis) {
+function renderCircles(circlesGroup, newXScale, chosenXAxis) {
 
   circlesGroup.transition()
     .duration(1000)
@@ -76,7 +84,7 @@ function updateToolTip(chosenXAxis, circlesGroup) {
   if (chosenXAxis === "poverty") {
     var label = "Poverty: ";
   }
-  else if (chosenXaxis === "income") {
+  else if (chosenXAxis === "income") {
     var label = "Income: ";
   }
   else {
@@ -89,6 +97,8 @@ function updateToolTip(chosenXAxis, circlesGroup) {
     .html(function(d) {
       return (`${d.state}<br>${label} ${d[chosenXAxis]}`);
     });
+    // .style("left", d3.event.pageX + "px") // this is how to BRING the tooltip to that spot.
+    // .style("top", d3.event.pageY + "px");
 
   circlesGroup.call(toolTip);
 
@@ -162,55 +172,36 @@ newsData.then(function(newsData) {
     .attr("fill", "steelblue")
     .attr("opacity", ".5");
 
-//     circlesGroup.append("text")
-//       .style("text-anchor", "middle")
-//       .style("font-size", "12px")
-//       .selectAll("tspan")
-//       .data(newsData)
-//       .enter()
-//       .append("tspan")
-//           .attr("x", function(data) {
-//               return xLinearScale(data.poverty - 0);
-//           })
-//           .attr("y", function(data) {
-//               return yLinearScale(data.obesity - 0.2);
-//           })
-//           .text(function(data) {
-//               return data.abbr
-// });
-    // With the circles on our graph, we need matching labels.
-    // Let's grab the state abbreviations from our data
-    // and place them in the center of our dots.
-    // circlesGroup.append("text")
-    // // We return the abbreviation to .text, which makes the text the abbreviation.
-    // .text(function(d) {
-    //   return d.abbr;
-    // })
-    // // Now place the text using our scale.
-    // .attr("dx", function(d) {
-    // return xScale(d[chosenXAxis]);
-    // })
-    // .attr("dy", function(d) {
-    // // When the size of the text is the radius,
-    // // adding a third of the radius to the height
-    // // pushes it into the middle of the circle.
-    // return yLinearScale(d[chosenYAxis]);
-    // })
-    // .attr("font-size", "12px")
-    // .attr("class", "stateText")
-    // // Hover Rules
-    // .on("mouseover", function(d) {
-    // // Show the tooltip
-    // toolTip.show(d);
-    // // Highlight the state circle's border
-    // d3.select("." + d.abbr).style("stroke", "#323232");
-    // })
-    // .on("mouseout", function(d) {
-    // // Remove tooltip
-    // toolTip.hide(d);
-    // // Remove highlight
-    // d3.select("." + d.abbr).style("stroke", "#e3e3e3");
-    // });
+
+   //Create text labels with state abbreviation for each circle
+   var items = chartGroup.selectAll("item")
+      .data(newsData)
+      .enter()
+      .append("g");
+   
+   // With the circles on our graph, we need matching labels.
+   // Let's grab the state abbreviations from our data
+   // and place them in the center of our dots.
+   items.append("text")
+      .classed("stateText", true)
+      .attr("x", d => xLinearScale(d[chosenXAxis]))
+      .attr("y", d => yLinearScale(d.obesity))
+      .attr("stroke", "white")
+      .attr("font-size", "12px")
+      .text(d => d.abbr)
+    // Hover Rules
+      .on("mouseover", function(d) {
+    // Show the tooltip
+    toolTips.show(d);
+    // Highlight the state circle's border
+    d3.select("." + d.abbr).style("stroke", "#323232");
+    })
+    .on("mouseout", function(d) {
+    // Remove tooltip
+    toolTips.hide(d);
+    // Remove highlight
+    d3.select("." + d.abbr).style("stroke", "#e3e3e3");
+    });
  
 
   // Create group for  3 x-axis labels
